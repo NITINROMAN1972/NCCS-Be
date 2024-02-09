@@ -1,0 +1,34 @@
+﻿body {
+}
+
+/* grid background color */
+.grid-custom th {
+    background-color: #4f64cc !important;
+    color: white !important;
+    font-size: 13px !important;
+    font-family: Verdana !important;
+    font-weight: normal !important;
+}
+
+/* button background color */
+.btn-custom {
+    background-color: #4f64cc;
+    color: white;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: normal;
+}
+
+.btn-custom:hover, .btn-custom:active, .btn-custom:focus {
+    background-color: #2b3b80;
+    color: white;
+}
+
+
+
+/* item insert button position */
+.button-position {
+    position: absolute;
+    bottom: -45px;
+    right: 10px;
+}

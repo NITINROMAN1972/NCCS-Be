@@ -18,12 +18,16 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
 
         if (!IsPostBack)
         {
-            int refNo = GetBillReferenceNumber();
-            ReqNo.Text = refNo.ToString();
-            Session["BillReferenceNumber"] = refNo.ToString();
-
             ReqDate.Text = DateTime.Now.ToString("yyyy-MM-dd");
         }
+    }
+
+    private void alert(string mssg)
+    {
+        // alert pop - up with only message
+        string message = mssg;
+        string script = $"alert('{message}');";
+        ScriptManager.RegisterStartupScript(this, this.GetType(), "messageScript", script, true);
     }
 
     private int GetBillReferenceNumber()
@@ -152,15 +156,13 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
 
     private void InsertBillEntry()
     {
-        string BillReferenceNo = Session["BillReferenceNumber"].ToString();
-
         string nameCellLine = CellLineName.Text.ToString();
         string quantity = Quantity.Text.ToString();
         string commentsIfAny = CommentsIfAny.Text.ToString() ?? "";
 
         DataTable dt = ViewState["BillDetailsVS"] as DataTable ?? createBillDatatable();
 
-        AddRowToBillDetailsDataTable(dt, BillReferenceNo, nameCellLine, quantity, commentsIfAny);
+        AddRowToBillDetailsDataTable(dt, nameCellLine, quantity, commentsIfAny);
 
         ViewState["BillDetailsVS"] = dt;
         Session["BillDetails"] = dt;
@@ -178,32 +180,27 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
     {
         DataTable dt = new DataTable();
 
-        // reference no
-        DataColumn RefNo = new DataColumn("BillRefNo", typeof(string));
-        dt.Columns.Add(RefNo);
-
         // cell name
-        DataColumn Item = new DataColumn("NmeCell", typeof(string));
-        dt.Columns.Add(Item);
+        DataColumn NmeCell = new DataColumn("NmeCell", typeof(string));
+        dt.Columns.Add(NmeCell);
 
         // quantity
-        DataColumn UOM = new DataColumn("Quty", typeof(string));
-        dt.Columns.Add(UOM);
+        DataColumn Quty = new DataColumn("Quty", typeof(string));
+        dt.Columns.Add(Quty);
 
         // comments
         DataColumn Comment = new DataColumn("Comment", typeof(string));
-        dt.Columns.Add(UOM);
+        dt.Columns.Add(Comment);
 
         return dt;
     }
 
-    private void AddRowToBillDetailsDataTable(DataTable dt, string BillReferenceNo, string nameCellLine, string quantity, string commentsIfAny)
+    private void AddRowToBillDetailsDataTable(DataTable dt, string nameCellLine, string quantity, string commentsIfAny)
     {
         // Create a new row
         DataRow row = dt.NewRow();
 
         // Set values for the new row
-        row["BillRefNo"] = BillReferenceNo;
         row["NmeCell"] = nameCellLine;
         row["Quty"] = quantity;
         row["Comment"] = commentsIfAny;
@@ -334,29 +331,40 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
     {
         if (GridDocument.Rows.Count > 0)
         {
+            string billReferenceNo = GetBillReferenceNumber().ToString();
+            ReqNo.Text = billReferenceNo.ToString();
+            Session["BillReferenceNumber"] = billReferenceNo.ToString();
+
             // inserting bill head
-            InsertBillHeader();
+            bool isBillHeaderSaved = InsertBillHeader(billReferenceNo);
 
-            // inserting item details from grid
-            InsertBillDetails();
+            if (isBillHeaderSaved)
+            {
+                // inserting item details from grid
+                InsertBillDetails(billReferenceNo);
 
-            // inserting documents
-            InsertBillDocument();
+                // inserting documents
+                InsertBillDocument(billReferenceNo);
 
-            btnSubmit.Enabled = false;
-            //Response.Redirect("../BillEntry.aspx");
+                btnSubmit.Enabled = false;
+                //Response.Redirect("../BillEntry.aspx");
 
-            getSweetAlertSuccessRedirectMandatory("Saved", "Bill saved successfully!", "../BillEntry.aspx");
+                getSweetAlertSuccessRedirectMandatory("Saved Successfully", $"Your Requisition No: {billReferenceNo}", "../BillEntry.aspx");
+            }
+            else
+            {
+                getSweetAlertErrorMandatory("Some went wrong!", "Cell Enlist did not saved");
+            }
         }
         else
         {
-            
+            getSweetAlertErrorMandatory("No Documents Found", "please add minimum one document");
         }
     }
 
-    private void InsertBillHeader()
+    private bool InsertBillHeader(string billReferenceNo)
     {
-        string billRefNo = ReqNo.Text.ToString();
+        string billRefNo = billReferenceNo;
         DateTime requisitionDate = DateTime.Parse(ReqDate.Text);
 
         using (SqlConnection con = new SqlConnection(connectionString))
@@ -367,22 +375,27 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
             SqlCommand cmd = new SqlCommand(sql, con);
             cmd.Parameters.AddWithValue("@RefNo", billRefNo);
             cmd.Parameters.AddWithValue("@ReqNo", billRefNo);
-            cmd.Parameters.AddWithValue("@ReqDte", requisitionDate);
-            cmd.ExecuteNonQuery();
+            cmd.Parameters.AddWithValue("@ReqDte", requisitionDate.ToString("yyyy-MM-dd"));
+            int rows = cmd.ExecuteNonQuery();
 
             //SqlDataAdapter ad = new SqlDataAdapter(cmd);
             //DataTable dt = new DataTable();
             //ad.Fill(dt);
 
             con.Close();
+
+            alert($"rows : {rows}");
+
+            if (rows > 0) return true;
+            else return false;
         }
     }
 
-    private void InsertBillDetails()
+    private void InsertBillDetails(string billReferenceNo)
     {
         DataTable billItemsDT = (DataTable)Session["BillDetails"];
 
-        string billRefNo = ReqNo.Text.ToString();
+        string billRefNo = billReferenceNo;
 
         string cellRefNo = GetItemRefNo().ToString();
 
@@ -435,9 +448,9 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
 
 
 
-    private void InsertBillDocument()
+    private void InsertBillDocument(string billReferenceNo)
     {
-        string billRefNo = ReqNo.Text.ToString();
+        string billRefNo = billReferenceNo;
 
         DataTable documentsDT = (DataTable)Session["DocUploadDT"];
 

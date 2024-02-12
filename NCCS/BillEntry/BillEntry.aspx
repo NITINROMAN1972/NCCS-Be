@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeFile="BillEntry.aspx.cs" Inherits="BillEntry_BillEntry" %>
+﻿<%@ Page Language="C#" UnobtrusiveValidationMode="None" MaintainScrollPositionOnPostback="true" AutoEventWireup="true" CodeFile="BillEntry.aspx.cs" Inherits="BillEntry_BillEntry" %>
 
 <!DOCTYPE html>
 
@@ -6,11 +6,13 @@
 <head runat="server">
     <title>Bill Entry</title>
 
-    <!-- CSS -->
+    <!-- Boottrap CSS -->
     <link href="../assests/css/bootstrap.min.css" rel="stylesheet" />
     <link href="../assests/css/bootstrap1.min.css" rel="stylesheet" />
-    <link href="../assests/css/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="../assests/css/eye-fill.svg" rel="stylesheet" />
+
+    <!-- Bootstrap JS -->
+    <script src="../assests/js/bootstrap.bundle.min.js"></script>
+    <script src="../assests/js/bootstrap1.min.js"></script>
 
     <!-- Popper.js -->
     <script src="../assests/js/popper.min.js"></script>
@@ -21,10 +23,6 @@
     <script src="../assests/js/jquery.min.js"></script>
     <script src="../assests/js/jquery-3.3.1.slim.min.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="../assests/js/bootstrap.bundle.min.js"></script>
-    <script src="../assests/js/bootstrap1.min.js"></script>
-
     <!-- Select2 library CSS and JS -->
     <link href="../assests/select2/select2.min.css" rel="stylesheet" />
     <script src="../assests/select2/select2.min.js"></script>
@@ -33,8 +31,9 @@
     <link href="../assests/sweertalert/sweetalert2.min.css" rel="stylesheet" />
     <script src="../assests/sweertalert/sweetalert2.all.min.js"></script>
 
-    <script src="bill-entry.css"></script>
-    <link rel="stylesheet" href="bill-entry.css" />
+
+    <script src="BillEntry.js"></script>
+    <link rel="stylesheet" href="BillEntry.css" />
 
 </head>
 <body>
@@ -59,7 +58,7 @@
                         </div>
                         <div class="col-md-6 text-end">
                             <div class="fw-semibold fs-5">
-                                <asp:Button ID="btnNewBill" runat="server" Text="New Bill Entry +" OnClick="btnNewBill_Click" CssClass="btn btn-custom text-white shadow" />
+                                <asp:Button ID="btnNewBill" runat="server" Text="New Cell Enlist +" OnClick="btnNewBill_Click" CssClass="btn btn-custom text-white shadow" />
                             </div>
                         </div>
                     </div>
@@ -126,8 +125,8 @@
                                 </ItemTemplate>
                                 <ItemStyle CssClass="col-md-1" />
                             </asp:TemplateField>
-                            <asp:BoundField DataField="RefNo" HeaderText="Bill Ref No" ItemStyle-CssClass="col-xs-3 align-middle text-start fw-light" />
-                            <asp:BoundField DataField="BillAmt" HeaderText="Bill Amount" ItemStyle-CssClass="col-xs-3 align-middle text-start fw-light" />
+                            <asp:BoundField DataField="ReqNo" HeaderText="Requisition Number" ItemStyle-CssClass="col-xs-3 align-middle text-start fw-light" />
+                            <asp:BoundField DataField="ReqDte" HeaderText="Requisition Date" ItemStyle-CssClass="col-xs-3 align-middle text-start fw-light" />
                             <asp:TemplateField HeaderText="Action">
                                 <ItemTemplate>
                                     <asp:LinkButton runat="server" ID="btnedit" CommandArgument='<%# Eval("RefNo") %>' CommandName="lnkView" ToolTip="Edit" CssClass="shadow-sm">
@@ -217,7 +216,7 @@
                                     <div class="mb-1 text-body-tertiary fw-semibold fs-6">
                                         <asp:Literal ID="Literal11" Text="" runat="server">Quantity<em style="color: red">*</em></asp:Literal>
                                         <div>
-                                            <asp:RequiredFieldValidator ID="rr3" ControlToValidate="Qty" ValidationGroup="ItemSave" CssClass="invalid-feedback" InitialValue="" runat="server" ErrorMessage="(Please insert quantity)" SetFocusOnError="True" Display="Dynamic" ToolTip="Required"></asp:RequiredFieldValidator>
+                                            <asp:RequiredFieldValidator ID="rr3" ControlToValidate="Quantity" ValidationGroup="ItemSave" CssClass="invalid-feedback" InitialValue="" runat="server" ErrorMessage="(Please insert quantity)" SetFocusOnError="True" Display="Dynamic" ToolTip="Required"></asp:RequiredFieldValidator>
                                         </div>
                                     </div>
                                     <asp:TextBox runat="server" ID="Quantity" type="text" CssClass="form-control border border-secondary-subtle bg-light rounded-1 fs-6 fw-light py-1"></asp:TextBox>

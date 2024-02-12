@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Linq;
+using System.ServiceModel.Security.Tokens;
 using System.Web;
 using System.Web.DynamicData;
 using System.Web.UI;
@@ -154,7 +155,7 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
         using (SqlConnection con = new SqlConnection(connectionString))
         {
             con.Open();
-            string sql = "select * from Requisition1891";
+            string sql = "select * from Requisition1891 order by ReqNo desc";
             SqlCommand cmd = new SqlCommand(sql, con);
             cmd.ExecuteNonQuery();
 
@@ -212,7 +213,7 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
 
     protected void btnNewBill_Click(object sender, EventArgs e)
     {
-        Response.Redirect("NewBillEntry.aspx");
+        Response.Redirect("NewBillEntry/NewBillEntry.aspx");
     }
 
     protected void btnSearch_Click(object sender, EventArgs e)
@@ -440,20 +441,20 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
         DataTable dt = new DataTable();
 
         // reference no
-        DataColumn RefNo = new DataColumn("BillRefNo", typeof(string));
-        dt.Columns.Add(RefNo);
+        DataColumn BillRefNo = new DataColumn("BillRefNo", typeof(string));
+        dt.Columns.Add(BillRefNo);
 
         // cell name
-        DataColumn Item = new DataColumn("NmeCell", typeof(string));
-        dt.Columns.Add(Item);
+        DataColumn NmeCell = new DataColumn("NmeCell", typeof(string));
+        dt.Columns.Add(NmeCell);
 
         // quantity
-        DataColumn UOM = new DataColumn("Quty", typeof(string));
-        dt.Columns.Add(UOM);
+        DataColumn Quty = new DataColumn("Quty", typeof(string));
+        dt.Columns.Add(Quty);
 
         // comments
         DataColumn Comment = new DataColumn("Comment", typeof(string));
-        dt.Columns.Add(UOM);
+        dt.Columns.Add(Comment);
 
         return dt;
     }
@@ -590,22 +591,237 @@ public partial class BillEntry_BillEntry : System.Web.UI.Page
     {
         if (GridDocument.Rows.Count > 0)
         {
+            string billReferenceNo = Session["BillReferenceNo"].ToString();
+
             // updating bill head
             //UpdateBillHeader();
 
             // updating item details
-            //UpdateBillItemDetails();
+            UpdateBillItemDetails(billReferenceNo);
 
             // updating bill doc uploads
+
             //UpdateBillDocDetails();
 
             //Response.Redirect("BillUpdate.aspx");
             //btnSubmit.Enabled = false;
-            Response.Redirect("BillEntry.aspx");
+
+
+            //Response.Redirect("BillEntry.aspx");
+
+            //getSweetAlertSuccessRedirectMandatory("Saved!", "Saved successfully", "BillEntry.aspx");
         }
         else
         {
-
+            getSweetAlertErrorMandatory("Error!", "Update failed, please try again");
         }
     }
+
+
+
+
+    private void UpdateBillHeader()
+    {
+        string billRefno = Session["BillReferenceNo"].ToString(); 
+
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+            string sql = $@"UPDATE Requisition1891 SET BillAmt = @BillAmt WHERE RefNo = @RefNo";
+            SqlCommand cmd = new SqlCommand(sql, con);
+            cmd.Parameters.AddWithValue("@RefNo", billRefno);
+            cmd.ExecuteNonQuery();
+
+            //SqlDataAdapter ad = new SqlDataAdapter(cmd);
+            //DataTable dt = new DataTable();
+            //ad.Fill(dt);
+
+            con.Close();
+        }
+    }
+
+
+
+
+    private void UpdateBillItemDetails(string billReferenceNo)
+    {
+        string billRefno = billReferenceNo;
+
+        DataTable billItemsDT = (DataTable)Session["BillDetails"]; // requisition 2 details
+
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+
+            int k = 1;
+
+            foreach (GridViewRow row in itemGrid.Rows)
+            {
+                int rowIndex = row.RowIndex;
+
+                // cell items
+                string cellName = billItemsDT.Rows[rowIndex]["NmeCell"].ToString();
+                string qty = billItemsDT.Rows[rowIndex]["Quty"].ToString();
+                string comments = billItemsDT.Rows[rowIndex]["Comment"].ToString();
+
+                // item ref no to update
+                string itemRefNo = billItemsDT.Rows[rowIndex]["RefNo"].ToString();
+
+                if(k == 2)
+                {
+                    alert($"itemRefNo : {itemRefNo}");
+                }
+
+                // checking for existing items
+                //bool isItemExists = IsItemExists(itemRefID);
+
+                //if (isItemExists)
+                //if (itemRefNo != "") // update
+                if (!string.IsNullOrEmpty(itemRefNo)) // update
+
+
+                {
+                    string sql = $@"UPDATE Requisition2891 SET 
+                                    NmeCell=@NmeCell, Quty=@Quty, Comment=@Comment 
+                                    WHERE RefNo=@RefNo";
+
+                    SqlCommand cmd = new SqlCommand(sql, con);
+                    cmd.Parameters.AddWithValue("@NmeCell", cellName);
+                    cmd.Parameters.AddWithValue("@Quty", qty);
+                    cmd.Parameters.AddWithValue("@Comment", comments);
+                    cmd.Parameters.AddWithValue("@RefNo", itemRefNo);
+                    cmd.ExecuteNonQuery();
+                }
+                else // insert
+                {
+                    // getting new ref id for item
+                    string itemRefNoNew = GetItemRefNo().ToString();
+
+                    string sql = $@"INSERT INTO Requisition2891 
+                                    (RefNo, BillRefNo, NmeCell, Quty, Comment) 
+                                    VALUES 
+                                    (@RefNo, @BillRefNo, @NmeCell, @Quty, @Comment)";
+
+                    SqlCommand cmd = new SqlCommand(sql, con);
+                    cmd.Parameters.AddWithValue("@RefNo", itemRefNoNew);
+                    cmd.Parameters.AddWithValue("@BillRefNo", billRefno);
+                    cmd.Parameters.AddWithValue("@NmeCell", cellName);
+                    cmd.Parameters.AddWithValue("@Quty", qty);
+                    cmd.Parameters.AddWithValue("@Comment", comments);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            k++;
+
+            con.Close();
+        }
+
+    }
+
+    private int GetItemRefNo()
+    {
+        string nextRefID = "1000001";
+
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+            string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 10000) + 1 AS NextRefID FROM Requisition2891";
+            SqlCommand cmd = new SqlCommand(sql, con);
+
+            object result = cmd.ExecuteScalar();
+            if (result != null && result != DBNull.Value) { nextRefID = result.ToString(); }
+            return Convert.ToInt32(nextRefID);
+        }
+    }
+
+
+
+
+    private void UpdateBillDocDetails()
+    {
+        string billRefno = Session["BillReferenceNo"].ToString();
+
+        DataTable documentsDT = (DataTable)Session["DocUploadDT"];
+
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+
+            foreach (GridViewRow row in GridDocument.Rows)
+            {
+                int rowIndex = row.RowIndex;
+
+                string docName = documentsDT.Rows[rowIndex]["DocName"].ToString();
+
+                HyperLink hypDocPath = (HyperLink)row.FindControl("DocPath");
+                string docPath = hypDocPath.NavigateUrl;
+
+                string docRefid = documentsDT.Rows[rowIndex]["RefID"].ToString();
+
+                bool isDocExist = checkForDocuUploadedExist(docRefid);
+
+                if (isDocExist)
+                {
+
+                }
+                else
+                {
+                    int docRefNo = getDocRefINo(); // new doc RefID
+
+                    string sql = $@"INSERT INTO BillDocUpload891 
+                                    (RefNo, BillRefNo, DocName, DocPath) 
+                                    values 
+                                    (@RefNo, @BillRefNo, @DocName, @DocPath)";
+
+                    SqlCommand cmd = new SqlCommand(sql, con);
+                    cmd.Parameters.AddWithValue("@RefNo", docRefNo);
+                    cmd.Parameters.AddWithValue("@BillRefNo", billRefno);
+                    cmd.Parameters.AddWithValue("@DocName", docName);
+                    cmd.Parameters.AddWithValue("@DocPath", docPath);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            con.Close();
+        }
+    }
+
+    private bool checkForDocuUploadedExist(string docRefNo)
+    {
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+            string sql = "SELECT * FROM BillDocUpload891 WHERE RefNo=@RefNo";
+
+            SqlCommand cmd = new SqlCommand(sql, con);
+            cmd.Parameters.AddWithValue("@RefNo", docRefNo);
+            cmd.ExecuteNonQuery();
+
+            SqlDataAdapter ad = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            ad.Fill(dt);
+            con.Close();
+
+            if (dt.Rows.Count > 0) return true;
+            else return false;
+        }
+    }
+
+    private int getDocRefINo()
+    {
+        string nextRefID = "1000001";
+
+        using (SqlConnection con = new SqlConnection(connectionString))
+        {
+            con.Open();
+            string sql = "SELECT ISNULL(MAX(CAST(RefNo AS INT)), 10000) + 1 AS NextRefID FROM BillDocUpload891";
+            SqlCommand cmd = new SqlCommand(sql, con);
+
+            object result = cmd.ExecuteScalar();
+            if (result != null && result != DBNull.Value) { nextRefID = result.ToString(); }
+            return Convert.ToInt32(nextRefID);
+        }
+    }
+
 }

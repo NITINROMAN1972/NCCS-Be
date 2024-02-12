@@ -26,7 +26,7 @@ public partial class Temp_Temp : System.Web.UI.Page
         using (SqlConnection con = new SqlConnection(connectionString))
         {
             con.Open();
-            string sql = "select * from mnu891";
+            string sql = "select * from BillDocUpload891";
             SqlCommand cmd = new SqlCommand(sql, con);
 
             SqlDataAdapter ad = new SqlDataAdapter(cmd);

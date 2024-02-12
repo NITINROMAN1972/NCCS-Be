@@ -6,11 +6,13 @@
 <head runat="server">
     <title>Bill Entry</title>
 
-    <!-- CSS -->
+    <!-- Boottrap CSS -->
     <link href="../../assests/css/bootstrap.min.css" rel="stylesheet" />
     <link href="../../assests/css/bootstrap1.min.css" rel="stylesheet" />
-    <link href="../../assests/css/bootstrap-icons.min.css" rel="stylesheet" />
-    <link href="../../assests/css/eye-fill.svg" rel="stylesheet" />
+
+    <!-- Bootstrap JS -->
+    <script src="../../assests/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assests/js/bootstrap1.min.js"></script>
 
     <!-- Popper.js -->
     <script src="../../assests/js/popper.min.js"></script>
@@ -21,10 +23,6 @@
     <script src="../../assests/js/jquery.min.js"></script>
     <script src="../../assests/js/jquery-3.3.1.slim.min.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="../../assests/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assests/js/bootstrap1.min.js"></script>
-
     <!-- Select2 library CSS and JS -->
     <link href="../../assests/select2/select2.min.css" rel="stylesheet" />
     <script src="../../assests/select2/select2.min.js"></script>
@@ -33,8 +31,8 @@
     <link href="../../assests/sweertalert/sweetalert2.min.css" rel="stylesheet" />
     <script src="../../assests/sweertalert/sweetalert2.all.min.js"></script>
 
-    <script src="bill-entry-new.js"></script>
-    <link rel="stylesheet" href="bill-entry-new.css" />
+    <script src="NewBillEntry.js"></script>
+    <link rel="stylesheet" href="NewBillEntry.css" />
 
 </head>
 <body>
@@ -67,7 +65,7 @@
                         <div class="mb-1 text-body-tertiary fw-semibold fs-6">
                             <asp:Literal ID="Literal10" Text="Bill Number" runat="server">Requisition Number</asp:Literal>
                         </div>
-                        <asp:TextBox runat="server" ID="ReqNo" ReadOnly="true" type="text" CssClass="form-control border border-secondary-subtle bg-light rounded-1 fs-6 fw-light py-1"></asp:TextBox>
+                        <asp:TextBox runat="server" ID="ReqNo" ReadOnly="true" type="text" Text="System Generted" CssClass="form-control border border-secondary-subtle bg-light rounded-1 fs-6 fw-light py-1"></asp:TextBox>
                     </div>
                     <div class="col-md-6 align-self-end">
                         <div class="mb-1 text-body-tertiary fw-semibold fs-6">
@@ -113,7 +111,7 @@
                                 <div class="mb-1 text-body-tertiary fw-semibold fs-6">
                                     <asp:Literal ID="Literal11" Text="" runat="server">Quantity<em style="color: red">*</em></asp:Literal>
                                     <div>
-                                        <asp:RequiredFieldValidator ID="rr3" ControlToValidate="Qty" ValidationGroup="ItemSave" CssClass="invalid-feedback" InitialValue="" runat="server" ErrorMessage="(Please insert quantity)" SetFocusOnError="True" Display="Dynamic" ToolTip="Required"></asp:RequiredFieldValidator>
+                                        <asp:RequiredFieldValidator ID="rr3" ControlToValidate="Quantity" ValidationGroup="ItemSave" CssClass="invalid-feedback" InitialValue="" runat="server" ErrorMessage="(Please insert quantity)" SetFocusOnError="True" Display="Dynamic" ToolTip="Required"></asp:RequiredFieldValidator>
                                     </div>
                                 </div>
                                 <asp:TextBox runat="server" ID="Quantity" type="text" CssClass="form-control border border-secondary-subtle bg-light rounded-1 fs-6 fw-light py-1"></asp:TextBox>
@@ -209,7 +207,7 @@
                                     <asp:Button ID="btnBack" runat="server" Text="Back" OnClick="btnBack_Click" CssClass="btn btn-custom text-white shadow mb-5" />
                                 </div>
                                 <div class="col-md-6 text-end">
-                                    <asp:Button ID="btnSubmit" Enabled="true" runat="server" Text="Submit" OnClick="btnSubmit_Click" ValidationGroup="finalSubmit" CssClass="btn btn-custom text-white shadow mb-5" />
+                                    <asp:Button ID="btnSubmit" Enabled="true" runat="server" Text="Submit" OnClick="btnSubmit_Click" ValidationGroup="ItemSave" CssClass="btn btn-custom text-white shadow mb-5" />
                                 </div>
                             </div>
                         </div>

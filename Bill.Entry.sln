@@ -32,4 +32,11 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2231A324-FA1F-4E2C-AF7E-0A5B2D106666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2231A324-FA1F-4E2C-AF7E-0A5B2D106666}.Debug|Any CPU.Build.0 = Debug|Any CPU
-
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38C34CFA-2568-4372-AF61-90394ECD85DB}
+	EndGlobalSection
+EndGlobal
